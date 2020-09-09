@@ -1,0 +1,1 @@
+docker-compose exec evrone_test_task pytest

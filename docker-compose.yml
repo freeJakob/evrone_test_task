@@ -1,0 +1,48 @@
+version: '3.1'
+
+services:
+  evrone_test_task:
+    tty: true
+    build: .
+    image: evrone_test_task
+    environment:
+      DATABASE_HOST: db
+    networks:
+      - app
+    volumes:
+      - ./evrone_test_task:/app/evrone_test_task
+      - static_volume:/app/evrone_test_task/static/
+    depends_on:
+      - db
+    command: "gunicorn -b 0.0.0.0:8000 -w 4 evrone_test_task.wsgi"
+  db:
+    tty: true
+    image: postgres:11
+    volumes:
+      - ./postgres/initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+    environment:
+      DATABASE_NAME: evrone_test_task_db
+      DATABASE_USER: evrone_test_task_user
+      DATABASE_PASSWORD: 123456
+      POSTGRES_PASSWORD: 123456
+    networks:
+      - app
+    ports:
+      # Postgresql
+      - "5432:5432"
+  nginx:
+    image: nginx:1.15
+    ports:
+      - 8000:8000
+    volumes:
+      - ./nginx/:/etc/nginx/conf.d
+      - static_volume:/app/evrone_test_task/static/
+    depends_on:
+      - evrone_test_task
+    networks:
+      - app
+networks:
+  app:
+
+volumes:
+  static_volume:
